@@ -163,7 +163,7 @@ def parse_and_write(json_response, header, f):
     print("last id of batch", tweet["id"])
     return header
 
-def get_data(params , output, next_token=None):
+def get_data(params , output, next_token=None, keepJson=False):
 
    
     count = 0
@@ -172,7 +172,8 @@ def get_data(params , output, next_token=None):
 
     tweet_params = get_params(params, next_token)
     f = open(output, "w", encoding='utf-8',  newline="")
-
+    if keepJson:
+        fjson = open(output + ".json", "w", encoding='utf-8', newline="")
     while flag:
         # Replace the count below with the number of Tweets you want to stop at.
         # Note: running without the count check will result in getting more Tweets
@@ -193,6 +194,8 @@ def get_data(params , output, next_token=None):
                 if "next_token" in tweet_params:
                     del tweet_params["next_token"]
             if result_count is not None and result_count > 0 and next_token is not None:
+                if keepJson:
+                    json.dump(json_response, fjson)
                 header = parse_and_write(json_response,header,f)
                 count += result_count
                 print(count)
@@ -202,6 +205,8 @@ def get_data(params , output, next_token=None):
                 flag = False
 
                 if result_count is not None and result_count > 0 :
+                    if keepJson:
+                        json.dump(json_response, fjson)
                     header = parse_and_write(json_response,header,f)
                     count += result_count
                     print(count)
@@ -214,13 +219,12 @@ params = {
     "start_time": "2011-01-01T00:00:00Z",
  #   "end_time": "2021-03-19T00:00:00Z",
     "query": "From:TwitterDev  is:retweet",
-   
     "tweet_fields": "attachments,author_id,context_annotations,created_at,entities,geo,id,in_reply_to_user_id,lang,possibly_sensitive,public_metrics,referenced_tweets,source,withheld",
     #  "user.fields" : "created_at,id,location,name,profile_image_url,protected,public_metrics,url,username,verified,withheld"
     "expansions" : "author_id,attachments.media_keys",
     "media_fields" : "url"
   }
 
-output ="./twitterdev.csv" # 22 46
-next_token =None
+output ="./twitterdev.csv" #
+next_token =None # to restart from the token if a problem occurs after getting some data.
 get_data(params, output, next_token )
